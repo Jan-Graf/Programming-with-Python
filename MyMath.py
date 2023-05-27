@@ -17,3 +17,16 @@ class LinearFunction:
         '''
         self.y_intercept = a
         self.slope = b
+
+class TrianingFunction(LinearFunction):
+    '''
+    The ideal function for the training function
+    '''
+    ideal_function: LinearFunction
+    '''
+    The mapped points from the test set
+    '''
+    mapped_points = []
+
+    def __init__(self, a: float, b: float):
+        super().__init__(a, b)

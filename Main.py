@@ -10,15 +10,14 @@ train_functions = {}
 ideal_functions = {}
 
 def main():
-    GetFunctions("train.csv", train_functions)
-    GetFunctions("ideal.csv", ideal_functions)
+    GetFunctions("train.csv")
+    GetFunctions("ideal.csv")
 
-def GetFunctions(file_name: str, funcs: dict) -> None:
+def GetFunctions(file_name: str) -> None:
     '''
     Read the given *.csv file and store the linear functions in a dict
     
     :param file_name str: The file name of the csv-file with file extension
-    :param funcs dict: The dict to store the calculated functions
     '''
     try:
         # check if the given file name has the correct extension --> raise exception if not
@@ -49,7 +48,13 @@ def GetFunctions(file_name: str, funcs: dict) -> None:
             b = cov.loc["x"][y_axes] / var["x"]
             a = data.loc[:, y_axes].mean() - b * x_mean
 
-            funcs[y_axes] = MyMath.LinearFunction(a, b)
+            # depending on the file, add function to dict
+            if file_name == "train.csv":
+                train_functions[y_axes] = MyMath.TrianingFunction(a, b)
+            elif file_name == "ideal.csv":
+                ideal_functions[y_axes] = MyMath.LinearFunction(a, b)
+            else:
+                raise Exception("The function for the test data is not neccessary.")
     except:
         pass
 
