@@ -1,6 +1,12 @@
-class LinearFunction:    
-    y_intercept = None
-    slope = None
+class LinearFunction:
+    '''
+    The value for the y intercept
+    '''    
+    y_intercept: float = None
+    '''
+    The slope of the function
+    '''
+    slope: float = None
 
     def __init__(self, a: float, b: float):
         '''
