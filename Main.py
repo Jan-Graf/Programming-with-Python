@@ -17,7 +17,7 @@ def GetFunctions(file_name: str, funcs: dict) -> None:
     '''
     Read the given *.csv file and store the linear functions in a dict
     
-    :param file_name str: The file name of the csv-file with file extenstion
+    :param file_name str: The file name of the csv-file with file extension
     :param funcs dict: The dict to store the calculated functions
     '''
     try:
