@@ -1,4 +1,4 @@
-import MyMath
+import functions
 import os
 import pandas as pd
 
@@ -10,10 +10,10 @@ train_functions = {}
 ideal_functions = {}
 
 def main():
-    GetFunctions("train.csv")
-    GetFunctions("ideal.csv")
+    get_funcs("train.csv")
+    get_funcs("ideal.csv")
 
-def GetFunctions(file_name: str) -> None:
+def get_funcs(file_name: str) -> None:
     '''
     Read the given *.csv file and store the linear functions in a dict
     
@@ -50,9 +50,9 @@ def GetFunctions(file_name: str) -> None:
 
             # depending on the file, add function to dict
             if file_name == "train.csv":
-                train_functions[y_axes] = MyMath.TrianingFunction(a, b)
+                train_functions[y_axes] = functions.train_function(a, b)
             elif file_name == "ideal.csv":
-                ideal_functions[y_axes] = MyMath.LinearFunction(a, b)
+                ideal_functions[y_axes] = functions.linear_function(a, b)
             else:
                 raise Exception("The function for the test data is not neccessary.")
     except:

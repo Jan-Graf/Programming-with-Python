@@ -1,4 +1,4 @@
-class LinearFunction:
+class linear_function:
     '''
     The value for the y intercept
     '''    
@@ -18,11 +18,11 @@ class LinearFunction:
         self.y_intercept = a
         self.slope = b
 
-class TrianingFunction(LinearFunction):
+class train_function(linear_function):
     '''
     The ideal function for the training function
     '''
-    ideal_function: LinearFunction
+    ideal_function: linear_function
     '''
     The mapped points from the test set
     '''
