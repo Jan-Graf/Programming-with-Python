@@ -1,49 +1,57 @@
+import MyMath
 import os
 import pandas as pd
-import MyMath
 
 # define dataset directory based on file location
 dataset_dir = os.path.join(os.path.dirname(__file__), "Dataset")
 # define the train functions
-train_functions = []
+train_functions = {}
 # define the ideal functions
-ideal_functions = []
+ideal_functions = {}
 
 def main():
-    # read main and ideal data
-    train_data = pd.read_csv(os.path.join(dataset_dir, "train.csv"), sep=",")
-    ideal_data = pd.read_csv(os.path.join(dataset_dir, "ideal.csv"), sep=",")
+    GetFunctions("train.csv", train_functions)
+    GetFunctions("ideal.csv", ideal_functions)
 
-    # get covariances
-    train_cov = train_data.cov(ddof=0, numeric_only=True)
-    ideal_cov = ideal_data.cov(ddof=0, numeric_only=True)
-    # get variances
-    train_var = train_data.var(axis=0, skipna= True, ddof=0, numeric_only=True)
-    ideal_var = ideal_data.var(axis=0, skipna= True, ddof=0, numeric_only=True)
+def GetFunctions(file_name: str, funcs: dict) -> None:
+    '''
+    Read the given *.csv file and store the linear functions in a dict
     
-    train_avg_x = train_data.loc[:, "x"].mean()
-    for y_axes in list(train_data.columns.values):
-        # skip the x axis
-        if y_axes == "x":
-            continue
-        # calculate the params for the function
-        b = train_cov.loc["x"][y_axes] / train_var["x"]
-        a = train_data.loc[:, y_axes].mean() - b * train_avg_x
+    :param file_name str: The file name of the csv-file with file extenstion
+    :param funcs dict: The dict to store the calculated functions
+    '''
+    try:
+        # check if the given file name has the correct extension --> raise exception if not
+        if not file_name.endswith(".csv"):
+            raise Exception("The file name has no or the wrong file extension.")
+        # check if the file name is a name and no path --> raise exception if not
+        if "/" in file_name or "\\" in file_name:
+            raise Exception("Only the name if the file is expected. No information about the file path.")
+        
+        # store the complete path to the file in a variable and check, if the file exists --> raise exception if not
+        complete_path = os.path.join(dataset_dir, file_name)
+        if not os.path.isfile(complete_path):
+            raise FileNotFoundError
+        
+        # read csv file and store it in a data frame
+        data = pd.read_csv(complete_path, sep=",")
+        # get covariances and variances
+        cov = data.cov(ddof=0, numeric_only=True)
+        var = data.var(axis=0, skipna= True, ddof=0, numeric_only=True)
+        # get mean of x values
+        x_mean = data.loc[:, "x"].mean()
 
-        # store function object in list
-        train_functions.append(MyMath.LinearFunction(a, b))
+        for y_axes in list(data.columns.values):
+            # skip the x-axis
+            if y_axes == "x":
+                continue
+            # calculate the params for the function
+            b = cov.loc["x"][y_axes] / var["x"]
+            a = data.loc[:, y_axes].mean() - b * x_mean
 
-    ideal_avg_x = ideal_data.loc[:, "x"].mean()
-    for y_axes in list(ideal_data.columns.values):
-        # skip the x axis
-        if y_axes == "x":
-            continue
-        # calculate the params for the function
-        b = ideal_cov.loc["x"][y_axes] / ideal_var["x"]
-        a = ideal_data.loc[:, y_axes].mean() - b * ideal_avg_x
-
-        # store function object in list
-        ideal_functions.append(MyMath.LinearFunction(a, b))
+            funcs[y_axes] = MyMath.LinearFunction(a, b)
+    except:
+        pass
 
 if __name__ == "__main__":
     main()
