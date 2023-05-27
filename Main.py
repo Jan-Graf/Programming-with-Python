@@ -9,5 +9,12 @@ def main():
     train_data = pd.read_csv(os.path.join(dataset_dir, "train.csv"), sep=",")
     ideal_data = pd.read_csv(os.path.join(dataset_dir, "ideal.csv"), sep=",")
 
+    # get covariances
+    train_cov = train_data.cov(ddof=0, numeric_only=True)
+    ideal_cov = ideal_data.cov(ddof=0, numeric_only=True)
+    # get variances
+    train_var = train_data.var()
+    ideal_var = ideal_data.var()
+
 if __name__ == "__main__":
     main()
