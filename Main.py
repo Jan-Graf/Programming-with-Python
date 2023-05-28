@@ -13,6 +13,8 @@ def main():
     get_funcs("train.csv")
     get_funcs("ideal.csv")
 
+    set_ideal_functions()
+
 def get_funcs(file_name: str) -> None:
     '''
     Read the given *.csv file and store the linear functions in a dict
@@ -55,6 +57,31 @@ def get_funcs(file_name: str) -> None:
                 ideal_functions[y_axes] = functions.linear_function(a, b)
             else:
                 raise Exception("The function for the test data is not neccessary.")
+    except:
+        pass
+
+def set_ideal_functions():
+    try:
+        # check if there are 4 training functions as expected in the dict --> raise exception if not
+        if len(train_functions) < 4:
+            raise Exception("There are not enough training functions")
+        elif len(train_functions) > 4:
+            raise Exception("There are too much training functions")
+        # check if there are 50 ideal functions as expected in the dict --> raise exception if not
+        if len(ideal_functions) < 50:
+            raise Exception("There are not enough training functions")
+        elif len(ideal_functions) > 50:
+            raise Exception("There are too muach training functions")
+        
+        # iterate through all training functions
+        for train_func in train_functions:
+            # default: set first ideal function as ideal function
+            train_functions[train_func].ideal_function = ideal_functions["y1"]
+
+            # iterate through ideal functions
+            for ideal_func in ideal_functions:
+                # check, if the current ideal function fits better to the training function as the actual one
+                train_functions[train_func].check_ideal_function(ideal_functions[ideal_func])
     except:
         pass
 
