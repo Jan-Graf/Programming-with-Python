@@ -30,6 +30,10 @@ class train_function(linear_function):
     '''
     ideal_function: linear_function
     '''
+    The number of the ideal function
+    '''
+    ideal_no: str = None
+    '''
     The mapped points from the test set
     '''
     mapped_points = []
@@ -37,7 +41,7 @@ class train_function(linear_function):
     def __init__(self, a: float, b: float):
         super().__init__(a, b)
         
-    def check_ideal_function(self, ideal_func: linear_function) -> bool:
+    def check_ideal_function(self, ideal_func: linear_function, func_no: str):
         '''
         Compare the given function to ideal function. If the given function fits besser to the function itself, the ideal function gets updated.
         '''
@@ -47,7 +51,22 @@ class train_function(linear_function):
             # if the y intercept is less than the actual ideal function, update the ideal function
             if abs(self.y_intercept - ideal_func.y_intercept) < abs(self.y_intercept - self.ideal_function.y_intercept):
                 self.ideal_function = ideal_func
+                self.ideal_no = func_no
             # if the y intercept is greater but the slope is lower than the actual ideal function, check mapping criterion
             # if the criterion is matched, update ideal function, because slope has more impact than the y intercept
             elif abs(self.y_intercept - ideal_func.y_intercept) < math.sqrt(2):
-                self.ideal_function = ideal_func
+                self.ideal_function = func_no
+                self.ideal_no = func_no
+
+class mapping_point:
+    x_value: float = None
+    y_value: float = None
+    delta_y: float = None
+    ideal_function_no: str = None
+
+    def __init__(self, x: float, y: float, delta: float, no: str) -> None:
+        # set attributes
+        self.x_value = x
+        self.y_value = y
+        self.delta_y = delta
+        self.ideal_function_no = no

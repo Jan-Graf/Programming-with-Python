@@ -1,4 +1,5 @@
 import functions
+import math
 import os
 import pandas as pd
 
@@ -14,6 +15,8 @@ def main():
     get_funcs("ideal.csv")
 
     set_ideal_functions()
+
+    map_test_function()
 
 def get_funcs(file_name: str) -> None:
     '''
@@ -75,13 +78,39 @@ def set_ideal_functions():
         
         # iterate through all training functions
         for train_func in train_functions:
-            # default: set first ideal function as ideal function
+             # default: set first ideal function as ideal function
             train_functions[train_func].ideal_function = ideal_functions["y1"]
 
             # iterate through ideal functions
             for ideal_func in ideal_functions:
                 # check, if the current ideal function fits better to the training function as the actual one
-                train_functions[train_func].check_ideal_function(ideal_functions[ideal_func])
+                train_functions[train_func].check_ideal_function(ideal_functions[ideal_func], ideal_func)
+    except:
+        pass
+
+def map_test_function():
+    try:
+        # check if there are 4 training functions as expected in the dict --> raise exception if not
+        if len(train_functions) < 4:
+            raise Exception("There are not enough training functions")
+        elif len(train_functions) > 4:
+            raise Exception("There are too much training functions")
+        
+        # load test function
+        test_functions = pd.read_csv(os.path.join(dataset_dir, "test.csv"))
+        # load training data (again)
+        data = pd.read_csv(os.path.join(dataset_dir, "train.csv"), sep=",")
+        # iter through test functions
+        for index, row in test_functions.iterrows():
+            # get y value of test function
+            test_y = row["y"]
+
+            for train_func in train_functions:
+                # get y value of train function
+                train_y = data.loc[data["x"] == row["x"], train_func].values[0]
+                # if criterion is matched, add point to list
+                if abs(train_y - test_y) < math.sqrt(2):
+                    train_functions[train_func].mapped_points.append(functions.mapping_point(row["x"], train_y, train_y - test_y, train_functions[train_func].ideal_no))
     except:
         pass
 
