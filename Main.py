@@ -2,6 +2,8 @@ import functions
 import math
 import os
 import pandas as pd
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 # define dataset directory based on file location
 dataset_dir = os.path.join(os.path.dirname(__file__), "Dataset")
@@ -21,6 +23,8 @@ def main():
     set_ideal_functions()
 
     map_test_function()
+
+    visualize_functions()
 
 def get_funcs(file_name: str) -> None:
     '''
@@ -125,6 +129,34 @@ def map_test_function():
                     train_functions[train_func].mapped_points.append(functions.mapping_point(row["x"], train_y, train_y - test_y, train_functions[train_func].ideal_no))
     except:
         pass
+
+def visualize_functions():
+    # create a figure object
+    fig = make_subplots(rows=2, cols=2, shared_xaxes=False, shared_yaxes=False, horizontal_spacing=0.1, vertical_spacing=0.1)
+    
+    # create and add traces to figure to display graphs
+    fig.add_trace(
+        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y1"], mode='lines', name='y1'),
+        row=1,
+        col=1
+    )
+    fig.add_trace(
+        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y2"], mode='lines', name='y2'),
+        row=1,
+        col=2
+    )
+    fig.add_trace(
+        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y3"], mode='lines', name='y3'),
+        row=2,
+        col=1
+    )
+    fig.add_trace(
+        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y4"], mode='lines', name='y4'),
+        row=2,
+        col=2
+    )
+
+    fig.show()
 
 if __name__ == "__main__":
     main()
