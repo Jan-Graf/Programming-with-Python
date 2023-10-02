@@ -5,6 +5,10 @@ import pandas as pd
 
 # define dataset directory based on file location
 dataset_dir = os.path.join(os.path.dirname(__file__), "Dataset")
+# store the raw data for each function to draw the functions
+raw_train_data: pd.DataFrame
+raw_ideal_data: pd.DataFrame
+
 # define the train functions
 train_functions = {}
 # define the ideal functions
@@ -39,6 +43,14 @@ def get_funcs(file_name: str) -> None:
         
         # read csv file and store it in a data frame
         data = pd.read_csv(complete_path, sep=",")
+        # store the raw data in DataFrames
+        if file_name == "train.csv":
+            global raw_train_data
+            raw_train_data = data
+        elif file_name == "ideal.csv":
+            global raw_ideal_data
+            raw_ideal_data = data
+
         # get covariances and variances
         cov = data.cov(ddof=0, numeric_only=True)
         var = data.var(axis=0, skipna= True, ddof=0, numeric_only=True)
