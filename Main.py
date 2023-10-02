@@ -1,6 +1,7 @@
 import functions
 import math
 import os
+import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
@@ -132,30 +133,42 @@ def map_test_function():
 
 def visualize_functions():
     # create a figure object
-    fig = make_subplots(rows=2, cols=2, shared_xaxes=False, shared_yaxes=False, horizontal_spacing=0.1, vertical_spacing=0.1)
+    fig = make_subplots(rows=2, cols=2, shared_xaxes=False, shared_yaxes=False, horizontal_spacing=0.1, vertical_spacing=0.1, subplot_titles=['Training Function y1', 'Training Function y2', 'Training Function y3', 'Training Function y4'])
     
-    # create and add traces to figure to display graphs
-    fig.add_trace(
-        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y1"], mode='lines', name='y1'),
-        row=1,
-        col=1
-    )
-    fig.add_trace(
-        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y2"], mode='lines', name='y2'),
-        row=1,
-        col=2
-    )
-    fig.add_trace(
-        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y3"], mode='lines', name='y3'),
-        row=2,
-        col=1
-    )
-    fig.add_trace(
-        go.Scatter(x=raw_train_data["x"], y=raw_train_data["y4"], mode='lines', name='y4'),
-        row=2,
-        col=2
-    )
+    # iterate through all training functions
+    for train_func in train_functions:
+        # get row and col index of the function
+        if train_func == "y1":
+            row_index = 1
+            col_index = 1
+        elif train_func == "y2":
+            row_index = 1
+            col_index = 2
+        elif train_func == "y3":
+            row_index = 2
+            col_index = 1
+        else:
+            row_index = 2
+            col_index = 2
+        
+        # draw graph of the raw data
+        fig.add_trace(
+            go.Scatter(x=raw_train_data["x"], y=raw_train_data[train_func], mode="lines", name=train_func, legendgroup=train_func),
+            row=row_index,
+            col=col_index
+        )
 
+        # calucalte x and y values based on the ideal function
+        ideal_function_no = train_functions[train_func].ideal_no
+        x_values = np.linspace(raw_ideal_data["x"].min(), raw_ideal_data["x"].max(), raw_ideal_data["x"].count() + 1)
+        y_values = ideal_functions[ideal_function_no].slope * x_values + ideal_functions[ideal_function_no].y_intercept
+        # add ideal function
+        fig.add_trace(
+            go.Scatter(x=x_values, y=y_values, mode="lines", name="Ideal Function", legendgroup=train_func),
+            row=row_index,
+            col=col_index
+        )
+    
     fig.show()
 
 if __name__ == "__main__":
