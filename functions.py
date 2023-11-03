@@ -144,6 +144,9 @@ class train_function(function):
     '''
 
     def __init__(self, raw_data: pd.DataFrame, coefficents: list):
+        '''
+        Initalize a new training function
+        '''
         super().__init__(raw_data, coefficents)
         self.mapped_points = []
         
