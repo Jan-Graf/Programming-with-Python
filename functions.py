@@ -14,22 +14,18 @@ superscript = {0: '\u2070',
                9: '\u2079'
                }
 
-class function:
+class Function:
     '''
-    A simple class to store functions and its parameters
+    A basic class to store functions and its parameters
     '''
 
-    raw_data: pd.DataFrame
+    data: pd.DataFrame
     '''
-    An empty DataFrame for the raw values
+    A DataFrame for the raw values
     '''
     coefficients: list = []
     '''
     A list of the coefficients of the function
-    '''
-    predicted_data: pd.DataFrame
-    '''
-    A data frame for the predicted values of the function
     '''
 
     def __init__(self, raw_data: pd.DataFrame, coefficients: list):
@@ -40,41 +36,22 @@ class function:
             raw_data pd.DataFrame: A DataFrame containing the raw data
             coeffiecents list: The coefficients of the functions            
         '''
-        # set raw data
-        self.raw_data = raw_data
+        # set raw data (important to copy. If not, the calculation of the predicted y-values throws a warning)
+        self.data = raw_data.copy()
         # rename column to only y
-        self.raw_data.columns.values[1] = "y"
+        self.data.columns.values[1] = "y"
         # add coefficents to the list
         self.coefficients = coefficients
+        # calculate all predicted values
+        self.__set_predicted_values()
     
-    def predict_values(self):
+    def __set_predicted_values(self):
         '''
         Get all predicted y-values
         '''
-        # calcualte the y-values
-        y_values = []
-        for x in self.raw_data["x"]:
-            y_values.append([x, self._get_predicted_y(x)])
         # set predicted values
-        self.predicted_data = pd.DataFrame(data=y_values, columns=["x", "y"])
+        self.data["y*"] = self.data.apply(lambda row: sum(coefficient * (row["x"] ** (len(self.coefficients) - 1 - i)) for i, coefficient in enumerate(self.coefficients)), axis=1)
 
-    def _get_predicted_y(self, x_value: float) -> float:
-        '''
-        Calculate the y-value for a given x-value
-
-        Args:
-            x_value float: The x-value to get the y-value for
-
-        Return:
-            float: The value for y at x
-        '''
-
-        predicted_y = 0.0
-        # enumerate through all coeffiecents and sum it up
-        for power, coefficent in enumerate(self.coefficients):
-            predicted_y += coefficent * (x_value ** (len(self.coefficients) - 1 - power))
-        return predicted_y
-    
     def __str__(self):
         '''
         return function as string
@@ -121,18 +98,14 @@ class function:
             result += superscript[single_int]
         return result
 
-class train_function(function):
+class TrainingFunction(Function):
     '''
-    A class for the training functions to add ideal functions annd mapped points
+    A basic class for a training function
     '''
     
     ideal_no: str = None
     '''
     The number of the ideal function
-    '''
-    predicted_data: pd.DataFrame
-    '''
-    DataFrame with the predicted values ideal function
     '''
     mapped_points: list = []
     '''
@@ -150,7 +123,7 @@ class train_function(function):
         super().__init__(raw_data, coefficents)
         self.mapped_points = []
         
-    def check_ideal_function(self, ideal_func: function, func_no: str):
+    def check_ideal_function(self, ideal_func: Function, func_no: str):
         '''
         Compare the given function to ideal function and checks the squarred sum error.
 
@@ -158,15 +131,12 @@ class train_function(function):
             ideal_func: Ideal Function to compare with
             func_no str: Number of the ideal function
         '''
-        error = 0
-        # get summed square error
-        for index, row in self.raw_data.iterrows():
-            error += (row["y"] - ideal_func._get_predicted_y(row["x"])) ** 2
+        error = ((self.data["y*"] - ideal_func.data["y*"]) ** 2).sum()
 
         # if the error is smaller, update the ideal function
         if error < self.__min_error:
             self.ideal_no = func_no
-            self.__min_error = error
+            self.__min_error = error        
 
 class mapping_point:
     '''
