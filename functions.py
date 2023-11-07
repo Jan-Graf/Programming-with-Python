@@ -107,7 +107,7 @@ class TrainingFunction(Function):
     '''
     The number of the ideal function
     '''
-    mapped_points: list = []
+    mapped_points: pd.DataFrame
     '''
     The mapped points from the test set
     '''
@@ -121,7 +121,8 @@ class TrainingFunction(Function):
         Initalize a new training function
         '''
         super().__init__(raw_data, coefficents)
-        self.mapped_points = []
+        # add columns for the mapped test points
+        self.mapped_points = pd.DataFrame(columns=["x", "y"])
         
     def check_ideal_function(self, ideal_func: Function, func_no: str):
         '''
@@ -136,36 +137,16 @@ class TrainingFunction(Function):
         # if the error is smaller, update the ideal function
         if error < self.__min_error:
             self.ideal_no = func_no
-            self.__min_error = error        
-
-class mapping_point:
-    '''
-    Simple class for the mapped points
-    '''
+            self.__min_error = error
     
-    x_value: float = None
-    '''
-    x-value of the point
-    '''
-    y_value: float = None
-    '''
-    y-value of the point
-    '''
-    delta_y: float = None
-    '''
-    The deviation of the raw y-value and the predicted y-value
-    '''
-    
-    def __init__(self, x: float, y: float, delta: float) -> None:
+    def add_test_point(self, x: float, y: float) -> None:
         '''
-        Initialize a new Mapping Point
+        Add a point from the test function to the DataFrame
 
         Args:
-            x float: The x-value of the point
-            y float: The y-value of the point
-            delta float: The devation of the raw y-value and the predicted y-value
+            x float: The x-value
+            y float: The y-value
         '''
-        # set attributes
-        self.x_value = x
-        self.y_value = y
-        self.delta_y = delta
+
+        row = pd.Series([x, y], index=["x", "y"])
+        self.mapped_points = self.mapped_points.append(row)

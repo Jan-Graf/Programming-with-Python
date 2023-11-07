@@ -16,6 +16,8 @@ dataset_dir = os.path.join(working_dir, "Dataset")
 train_functions = {}
 # define the ideal functions
 ideal_functions = {}
+# define the test function
+test_function = None
 
 def main():
     global train_functions, ideal_functions
@@ -154,6 +156,8 @@ def map_test_function(train_functions: dict):
         train_functions dict: A dictionary with the training functions
     '''
     try:
+        global test_function
+
         # check if there are 4 training functions as expected in the dict --> raise exception if not
         if len(train_functions) < 4:
             raise Exception("There are not enough training functions")
@@ -173,30 +177,10 @@ def map_test_function(train_functions: dict):
         data = pd.merge(data, train_functions["y4"].data[["x", "y*"]], on="x", how="inner", suffixes=["", "4"])
         # renaming columns
         data.columns = ["x", "y", "y1", "y2", "y3", "y4"]
-        
-        for index, row in data.iterrows():
-            delta_y, ideal_no = "", ""
-            already_mapped = False
-            if abs(row["y"] - row["y1"]) < math.sqrt(2):
-                delta_y = str(abs(row["y"] - row["y1"]))
-                ideal_no = train_functions["y1"].ideal_no
-                already_mapped = True
-            if abs(row["y"] - row["y2"]) < math.sqrt(2):
-                delta_y += (" / " if already_mapped else "") + str(abs(row["y"] - row["y2"]))
-                ideal_no += (" / " if already_mapped else "") + train_functions["y2"].ideal_no
-                already_mapped = True
-            if abs(row["y"] - row["y3"]) < math.sqrt(2):
-                delta_y += (" / " if already_mapped else "") + str(abs(row["y"] - row["y3"]))
-                ideal_no += (" / " if already_mapped else "") + train_functions["y3"].ideal_no
-                already_mapped = True
-            if abs(row["y"] - row["y4"]) < math.sqrt(2):
-                delta_y += (" / " if already_mapped else "") + str(abs(row["y"] - row["y4"]))
-                ideal_no += (" / " if already_mapped else "") + train_functions["y4"].ideal_no
-            
-            # add values to data frame
-            test_function.loc[test_function["x"] == row["x"], "delta y"] = delta_y
-            test_function.loc[test_function["x"] == row["x"], "No of ideal function"] = ideal_no
-        
+
+        # try the mapping and store deltas
+        data.apply(calculate_deltas, axis=1)
+
         # store raw data in database
         db_path = os.path.join(working_dir, "PyTask.db")
         engine = create_engine('sqlite:///' + db_path)
@@ -206,32 +190,64 @@ def map_test_function(train_functions: dict):
         print(error)
         exit()
 
+def calculate_deltas(row: pd.Series):
+    '''
+    Calculate the y-deviation of the test function to the ideal functions
+
+    Args:
+        row pd.Series: A row of a DataFrame containing the x and y values to calculate the deviation
+    '''
+
+    global test_function
+
+    # define the treshold of sqrt(2) and two variables for the deviation and the ideal no
+    treshold = math.sqrt(2)
+    delta_y, ideal_no = None, None
+
+    for col in ["y1", "y2", "y3", "y4"]:
+        # get current difference
+        difference = abs(row["y"] - row[col])
+        # update variables if the difference is smaller than the treshold
+        if difference < treshold:
+            delta_y = str(difference) if delta_y is None else delta_y + " / " + str(difference)
+            ideal_no = col if ideal_no is None else ideal_no + " / " + col
+
+    # set value in the test_function DataFrame
+    test_function.loc[row.name, "delta y"] = delta_y
+    test_function.loc[row.name, "No of ideal function"] = ideal_no
+    
+
 def visualize_functions():
     # create a figure object
     fig = make_subplots(rows=2, cols=2, shared_xaxes=False, shared_yaxes=False, horizontal_spacing=0.1, vertical_spacing=0.1, subplot_titles=['Training Function y1', 'Training Function y2', 'Training Function y3', 'Training Function y4'])
     
-    index_mapping = {"y1": (1, 1), "y2": (1, 2), "y3": (2, 1), "y4": (2, 2)}
+    index_mapping = {"y1": (1, 1, "#1f77b4", "#aec7e8", "#9467bd"), "y2": (1, 2, "#2ca02c", "#98df8a", "#8c564b"), "y3": (2, 1, "#d62728", "#ff9896", " #e377c2"), "y4": (2, 2, "#ff7f0e", "#ffbb78", "#7f7f7f")}
     # iterate through all training functions
     for train_func in train_functions:
         # get row and col index of the function
-        row_index, col_index = index_mapping[train_func]
+        row_index, col_index, train_color, ideal_color, test_color = index_mapping[train_func]
         
         # draw graph of the raw data
         fig.add_trace(
-            go.Scatter(x=train_functions[train_func].raw_data["x"], y=train_functions[train_func].raw_data["y"], mode="lines", name=train_func),
+            go.Scatter(x=train_functions[train_func].data["x"], y=train_functions[train_func].data["y"], mode="lines", line=dict(color=train_color), name=train_func),
             row=row_index,
             col=col_index
         )
 
         # define ideal values
-        ideal_x = ideal_functions[train_functions[train_func].ideal_no].predicted_data["x"]
-        ideal_y = ideal_functions[train_functions[train_func].ideal_no].predicted_data["y"]
+        ideal_x = ideal_functions[train_functions[train_func].ideal_no].data["x"]
+        ideal_y = ideal_functions[train_functions[train_func].ideal_no].data["y*"]
         
         # add ideal function
         fig.add_trace(
-            go.Scatter(x=ideal_x, y=ideal_y, mode="lines", name="Ideal Function for "+ train_func),
+            go.Scatter(x=ideal_x, y=ideal_y, line=dict(color=ideal_color), mode="lines", name="Ideal Function for "+ train_func),
             row=row_index,
             col=col_index
+        )
+
+        # add mapped test points
+        fig.add_trace(
+            go.Scatter(x=ideal_x, y=ideal_y, line=dict(color=ideal_color), mode="lines", name="Ideal Function for "+ train_func)
         )
     
     fig.show()
