@@ -31,7 +31,7 @@ def main():
 
     map_test_function(train_functions)
 
-    # visualize_functions()
+    visualize_functions()
 
 def create_database() -> None:
     '''
@@ -198,7 +198,7 @@ def calculate_deltas(row: pd.Series):
         row pd.Series: A row of a DataFrame containing the x and y values to calculate the deviation
     '''
 
-    global test_function
+    global train_functions, test_function
 
     # define the treshold of sqrt(2) and two variables for the deviation and the ideal no
     treshold = math.sqrt(2)
@@ -211,6 +211,8 @@ def calculate_deltas(row: pd.Series):
         if difference < treshold:
             delta_y = str(difference) if delta_y is None else delta_y + " / " + str(difference)
             ideal_no = col if ideal_no is None else ideal_no + " / " + col
+            train_functions[col].add_test_point(row["x"], row["y"])
+
 
     # set value in the test_function DataFrame
     test_function.loc[row.name, "delta y"] = delta_y
@@ -221,7 +223,7 @@ def visualize_functions():
     # create a figure object
     fig = make_subplots(rows=2, cols=2, shared_xaxes=False, shared_yaxes=False, horizontal_spacing=0.1, vertical_spacing=0.1, subplot_titles=['Training Function y1', 'Training Function y2', 'Training Function y3', 'Training Function y4'])
     
-    index_mapping = {"y1": (1, 1, "#1f77b4", "#aec7e8", "#9467bd"), "y2": (1, 2, "#2ca02c", "#98df8a", "#8c564b"), "y3": (2, 1, "#d62728", "#ff9896", " #e377c2"), "y4": (2, 2, "#ff7f0e", "#ffbb78", "#7f7f7f")}
+    index_mapping = {"y1": (1, 1, "blue", "royalblue", "deepskyblue"), "y2": (1, 2, "red", "tomato", "orangered"), "y3": (2, 1, "green", "limegreen", "forestgreen"), "y4": (2, 2, "purple", "mediumorchid", "violet")}
     # iterate through all training functions
     for train_func in train_functions:
         # get row and col index of the function
@@ -237,17 +239,29 @@ def visualize_functions():
         # define ideal values
         ideal_x = ideal_functions[train_functions[train_func].ideal_no].data["x"]
         ideal_y = ideal_functions[train_functions[train_func].ideal_no].data["y*"]
+        ideal_function = str(ideal_functions[train_functions[train_func].ideal_no])
         
         # add ideal function
         fig.add_trace(
-            go.Scatter(x=ideal_x, y=ideal_y, line=dict(color=ideal_color), mode="lines", name="Ideal Function for "+ train_func),
+            go.Scatter(x=ideal_x, y=ideal_y, mode="lines", line=dict(color=ideal_color), name="Ideal Function for "+ train_func),
+            row=row_index,
+            col=col_index
+        )        
+
+        # add mapped test points
+        fig.add_trace(
+            go.Scatter(x=train_functions[train_func].mapped_points["x"], y=train_functions[train_func].mapped_points["y"], mode="markers", marker=dict(color=test_color), name="Mapped points (" + train_func +")"),
             row=row_index,
             col=col_index
         )
 
-        # add mapped test points
-        fig.add_trace(
-            go.Scatter(x=ideal_x, y=ideal_y, line=dict(color=ideal_color), mode="lines", name="Ideal Function for "+ train_func)
+        # get coordinates
+        x = 0
+        y = max(train_functions[train_func].data["y"])
+        fig.add_annotation(
+            go.layout.Annotation(text=ideal_function, xref="paper", yref="paper", align="center", x=x, y=y, showarrow=False),
+            row=row_index,
+            col=col_index
         )
     
     fig.show()

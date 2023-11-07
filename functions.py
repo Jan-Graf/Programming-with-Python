@@ -1,4 +1,3 @@
-import math
 import pandas as pd
 
 # dict with unicodes for the numbers in superscript
@@ -59,19 +58,32 @@ class Function:
         # get the degree of the fuction
         degree = len(self.coefficients) - 1
 
-        result = "y = "
+        result = "y ="
         for i in range(degree, 1, -1):
-            # add every power to the function
-            result += self.__FloatToString(self.coefficients[(i + 1) * -1]) + "x" + self.__IntToSuperscript(i) + (" + " if self.coefficients[i * -1] >= 0 else " - ")
-        # add x and slope to function
-        result += self.__FloatToString(self.coefficients[-2]) + "x" + (" + " if self.coefficients[-1] >= 0 else " - ")
-        result += self.__FloatToString(self.coefficients[-1])
+            # add every power to the function, if coeffiecent is not less than 0.00
+            coeffiecent = self.__FloatToString(self.coefficients[(i + 1) * -1])
+            if coeffiecent[3:] != "0.00":
+                result += self.__FloatToString(self.coefficients[(i + 1) * -1]) + "x" + self.__IntToSuperscript(i)
+        
+        # add x and slope, if it is not 0.00
+        coeffiecent = self.__FloatToString(self.coefficients[-2])
+        slope = self.__FloatToString(self.coefficients[-1])
+        if coeffiecent[3:] != "0.00" and slope[3:] != "0.00":
+            result += coeffiecent + "x" + slope
+        elif coeffiecent[3:] != "0.00" and slope[3:] == "0.00":
+            result += coeffiecent + "x"
+        elif coeffiecent[3:] == "0.00" and slope[3:] != "0.00":
+            result += slope
+
+        # if first coeffiecent is positive, remove first sign
+        if result.startswith("y = +"):
+            result = "y =" + result[5:]
             
         return result
     
     def __FloatToString(self, number: float):
         '''
-        Convert a float to a string with max. two decimal places and no sign
+        Convert a float to a string with max. two decimal places
 
         Args:
             float: The float number to convert
@@ -79,7 +91,7 @@ class Function:
         Returns:
             str: The given float as string
         '''
-        return f"{abs(number):.2f}"
+        return " + " + f"{number:.2f}" if number > 0 else " - " + f"{abs(number):.2f}"
     
     def __IntToSuperscript(self, number: int):
         '''
@@ -148,5 +160,4 @@ class TrainingFunction(Function):
             y float: The y-value
         '''
 
-        row = pd.Series([x, y], index=["x", "y"])
-        self.mapped_points = self.mapped_points.append(row)
+        self.mapped_points.loc[len(self.mapped_points.index)] = [x, y]
