@@ -78,6 +78,8 @@ class Function:
         # if first coeffiecent is positive, remove first sign
         if result.startswith("y = +"):
             result = "y =" + result[5:]
+        elif result.startswith("y = -"):
+            result = "y = -" + result[6:]
             
         return result
     

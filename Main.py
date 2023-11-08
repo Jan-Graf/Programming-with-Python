@@ -255,11 +255,11 @@ def visualize_functions():
             col=col_index
         )
 
-        # get coordinates
-        x = 0
+        # set coordinates        
+        x = -17.5 if train_functions[train_func].data.at[(train_functions[train_func].data["y"].idxmax()), "x"] < -19 else -20
         y = max(train_functions[train_func].data["y"])
         fig.add_annotation(
-            go.layout.Annotation(text=ideal_function, xref="paper", yref="paper", align="center", x=x, y=y, showarrow=False),
+            go.layout.Annotation(text=ideal_function, font=dict(size=14), x=x, y=y, xanchor="left", yanchor="middle", xref="paper", yref="paper", showarrow=False),
             row=row_index,
             col=col_index
         )
