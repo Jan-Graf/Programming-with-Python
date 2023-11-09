@@ -161,3 +161,4 @@ cython_debug/
 
 # db Files needed for the project
 *.db
+Dataset/TrainData.xlsx
