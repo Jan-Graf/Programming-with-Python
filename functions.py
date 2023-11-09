@@ -100,7 +100,7 @@ class Function:
         Convert a number to superscript
 
         Args:
-            int: The int number to convert
+            number int: The int number to convert
         
         Returns:
             str: A string with the given number as unicode superscript
