@@ -4,7 +4,8 @@ import numpy as np
 import os
 import pandas as pd
 import plotly.graph_objs as go
-from colorama import init, Fore, Back, Style
+
+from colorama import Fore
 from datetime import datetime
 from enum import Enum
 from plotly.subplots import make_subplots
@@ -43,7 +44,7 @@ def main():
 
     visualize_functions()
 
-def print_log(msg_type: MessageType, method: str, msg: str, do_exit: bool = False):
+def print_log(msg_type: MessageType, method: str, msg: str):
     '''
     Print a log message to the console
 
@@ -51,7 +52,6 @@ def print_log(msg_type: MessageType, method: str, msg: str, do_exit: bool = Fals
         msg_type MessageType: The type of the logged message
         method str: The calling method
         msg str: The message that should be printed
-        do_exit bool: True, if the application should be stopped after this log (Optional)
     '''
     # get the current timestamp and generate log message
     timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -63,9 +63,6 @@ def print_log(msg_type: MessageType, method: str, msg: str, do_exit: bool = Fals
         print(Fore.YELLOW + log_msg + Fore.WHITE)
     else:
         print(Fore.RED + log_msg + Fore.WHITE)
-    # if wished, exit application
-    if do_exit:
-        exit()
 
 def create_database() -> None:
     '''
@@ -107,34 +104,35 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
     '''    
     
     global update_database
+
     try:
         if file_name == "test.csv" or file_name == "test":
-            raise Exception("The function for the test data is not neccessary.")
+            raise ValueError("The function for the test data is not neccessary.")
         elif file_name != "train.csv" and file_name != "train" and file_name != "ideal.csv" and file_name != "ideal":
-            raise Exception("Given a completly wrong file.")
+            raise ValueError("Given a completly wrong / empty file or a directorys.")
         
         # store the complete path to the file in a variable
         complete_path = os.path.join(dataset_dir, file_name)
         # check file to be correct
         file_extension = os.path.splitext(file_name)[1]
-        if os.path.isdir(complete_path):
-            raise TypeError("Expected a file name, no directory!")
-        elif file_extension == "":
+        if file_extension == "":
             print_log(MessageType.Warn, "get_funcs", "Missing file extension. Added "".csv"" automatically!")
-            complete_path += ".csv"
-        elif file_extension != ".csv":
-            raise ValueError("The given file has the wrong extension")
-        
+            complete_path += ".csv"        
         if not os.path.exists(complete_path):
-            raise FileNotFoundError
-                
+            raise FileNotFoundError()
+        
         # read csv file and store it in a data frame
         data = pd.read_csv(complete_path, sep=",")
         print_log(MessageType.Info, "get_funcs", "Successfully read \"" + file_name + "\"!")
     except PermissionError as error:
-        print_log(MessageType.Error, "get_funcs", "Cannot open the given csv file!", True)
+        print_log(MessageType.Error, "get_funcs", "Cannot open the given csv file!")
+        return
+    except ValueError as error:
+        print_log(MessageType.Error, "get_funcs", error)
+        return
     except Exception as error:
-        print_log(MessageType.Error, "get_funcs", error, True)
+        print_log(MessageType.Error, "get_funcs", error)
+        return
 
     try:
         if update_database:
@@ -181,8 +179,9 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
                 
             print_log(MessageType.Info, "get_funcs", "Successfully created new function " + y_axes + "!")
     except Exception as error:
-        # log error rin
-        print_log(MessageType.Error, "get_funcs", error, True)
+        # log error
+        print_log(MessageType.Error, "get_funcs", error)
+        return
     
 def set_ideal_functions():
     '''
