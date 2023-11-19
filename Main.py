@@ -116,7 +116,7 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
         file_extension = os.path.splitext(file_name)[1]
         if file_extension == "":
             print_log(MessageType.Warn, "get_funcs", "Missing file extension. Added "".csv"" automatically!")
-            complete_path += ".csv"        
+            complete_path += ".csv"
         if not os.path.exists(complete_path):
             raise FileNotFoundError("The give file can't be found in the dataset directory!")
         
@@ -195,9 +195,9 @@ def set_ideal_functions():
     try:
         # check if there are 4 training functions as expected in the dict --> raise exception if not
         if len(train_functions) < 4:
-            raise Exception("There are not enough training functions")
+            print_log(MessageType.Warn, "set_ideal_functions", "There are not enough training functions")
         elif len(train_functions) > 4:
-            raise Exception("There are too much training functions")
+            print_log(MessageType.Warn, "set_ideal_functions", "There are too much training functions")
         # check if there are 50 ideal functions as expected in the dict --> raise exception if not
         if len(ideal_functions) < 50:
             print_log(MessageType.Warn, "set_ideal_functions", "There are not enough ideal functions in the dict...")
@@ -357,5 +357,4 @@ def visualize_functions():
         print_log(MessageType.Error, "calculate deltas", error)
 
 if __name__ == "__main__":
-    get_funcs({}, "test.csv", "TestFunction")
-    #main()
+    main()
