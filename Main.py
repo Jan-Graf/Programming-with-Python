@@ -54,8 +54,7 @@ def print_log(msg_type: MessageType, method: str, msg: str):
         msg str: The message that should be printed
     '''
     # get the current timestamp and generate log message
-    timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    log_msg = timestamp + " " + method + " [" + msg_type.name + "]: " + str(msg)
+    log_msg = f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} {method} [{msg_type.name}]: {str(msg)}"
     # print log, color depends on msg_type
     if msg_type == MessageType.Info:
         print(Fore.WHITE + log_msg + Fore.WHITE)
@@ -119,7 +118,7 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
             print_log(MessageType.Warn, "get_funcs", "Missing file extension. Added "".csv"" automatically!")
             complete_path += ".csv"        
         if not os.path.exists(complete_path):
-            raise FileNotFoundError()
+            raise FileNotFoundError("The give file can't be found in the dataset directory!")
         
         # read csv file and store it in a data frame
         data = pd.read_csv(complete_path, sep=",")
@@ -358,4 +357,5 @@ def visualize_functions():
         print_log(MessageType.Error, "calculate deltas", error)
 
 if __name__ == "__main__":
-    main()
+    get_funcs({}, "test.csv", "TestFunction")
+    #main()
