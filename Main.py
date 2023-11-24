@@ -35,12 +35,12 @@ def main():
 
     create_database()
 
-    get_funcs(train_functions, "train.csv", "TrainingFunction")
+    get_funcs(train_functions, "train.csv", "TrainingFunctions")
     get_funcs(ideal_functions, "ideal.csv", "IdealFunctions")
 
     set_ideal_functions()
 
-    map_test_function(train_functions)
+    map_test_function()
 
     visualize_functions()
 
@@ -118,7 +118,7 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
             print_log(MessageType.Warn, "get_funcs", "Missing file extension. Added "".csv"" automatically!")
             complete_path += ".csv"
         if not os.path.exists(complete_path):
-            raise FileNotFoundError("The give file can't be found in the dataset directory!")
+            raise FileNotFoundError("The given file can't be found in the dataset directory!")
         
         # read csv file and store it in a data frame
         data = pd.read_csv(complete_path, sep=",")
@@ -139,6 +139,7 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
             db_path = os.path.join(working_dir, "PyTask.db")
             engine = create_engine('sqlite:///' + db_path)
             data.to_sql(table_name, engine, index=False, if_exists="replace")
+            engine.dispose()
     except PermissionError as error:
         update_database = False
         # log warning
@@ -165,7 +166,7 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
                 if len(residuals) == 0:
                     break
 
-                # use rounded residuals because if not really big functions will be returned (degree of 36 and coeffiecents like 2e-46)
+                # use rounded residuals because if not, really big functions will be returned (degree of 36 and coeffiecents like 2e-46)
                 if round(residuals[0], 3) < round(min_residuals, 3) and rank >= len(updated_coefficients) - 1:
                     min_residuals = residuals[0]
                     coefficients = updated_coefficients
@@ -185,11 +186,7 @@ def get_funcs(funcs: dict, file_name: str, table_name: str) -> None:
 def set_ideal_functions():
     '''
     Find the ideal function for every training function
-
-    Args:
-        train_functions dict: A dictionary with the training functions
-        ideal_functions dict: A dictionary with the ideal functions
-    '''    
+    '''
     global train_functions, ideal_functions
 
     try:
@@ -222,15 +219,12 @@ def set_ideal_functions():
     except Exception as error:
         print_log(MessageType.Error, "set_ideal_function", error, True)
 
-def map_test_function(train_functions: dict):
+def map_test_function():
     '''
     Map the test function to the training functions
-
-    Args:
-        train_functions dict: A dictionary with the training functions
     '''
     
-    global test_function, update_database
+    global train_functions, test_function, update_database
     try:
         # read test data
         complete_path = os.path.join(dataset_dir, "test.csv")
